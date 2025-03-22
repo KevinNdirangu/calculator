@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vue Calculator</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <style>
+        :root {
+            --bg-light: linear-gradient(45deg, #f4f4f4, #dcdcdc);
+            --bg-dark: linear-gradient(45deg, #333, #111);
+            --text-light: #000;
+            --text-dark: #fff;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background: var(--bg-light);
+            color: var(--text-light);
+            transition: all 0.3s ease;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            body {
+                background: var(--bg-dark);
+                color: var(--text-dark);
+            }
+        }
+
+        .calculator {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            width: 320px;
+            backdrop-filter: blur(10px);
+        }
+
+        .display {
+            width: 100%;
+            height: 50px;
+            font-size: 2rem;
+            text-align: right;
+            margin-bottom: 10px;
+            padding: 5px;
+            border: none;
+            background: rgba(255, 255, 255, 0.2);
+            color: inherit;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+
+        button {
+            width: 60px;
+            height: 60px;
+            font-size: 1.5rem;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            background: rgba(255, 255, 255, 0.2);
+            transition: transform 0.1s ease-in-out, background 0.3s;
+            color: inherit;
+        }
+
+        button:hover {
+            background: rgba(255, 255, 255, 0.4);
+        }
+
+        button:active {
+            transform: scale(0.9);
+        }
+
+        .operator {
+            background: #ff9500;
+            color: white;
+        }
+
+        .operator:hover {
+            background: #e08e00;
+        }
+
+        .clear {
+            background: #ff3b30;
+            color: white;
+        }
+
+        .clear:hover {
+            background: #d32f2f;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="app">
+        <div class="calculator">
+            <input type="text" class="display" v-model="display" disabled>
+            <div class="buttons">
+                <button @click="clearDisplay" class="clear">C</button>
+                <button @click="appendValue('7')">7</button>
+                <button @click="appendValue('8')">8</button>
+                <button @click="appendValue('9')">9</button>
+                <button @click="appendValue('+')" class="operator">+</button>
+                <button @click="appendValue('4')">4</button>
+                <button @click="appendValue('5')">5</button>
+                <button @click="appendValue('6')">6</button>
+                <button @click="appendValue('-')" class="operator">-</button>
+                <button @click="appendValue('1')">1</button>
+                <button @click="appendValue('2')">2</button>
+                <button @click="appendValue('3')">3</button>
+                <button @click="appendValue('*')" class="operator">×</button>
+                <button @click="appendValue('0')">0</button>
+                <button @click="appendValue('.')">.</button>
+                <button @click="calculateResult" class="operator">=</button>
+                <button @click="appendValue('/')" class="operator">÷</button>
+
+                <!-- Scientific Functions -->
+                <button @click="appendValue('sin(')">sin</button>
+                <button @click="appendValue('cos(')">cos</button>
+                <button @click="appendValue('tan(')">tan</button>
+                <button @click="appendValue('sqrt(')">√</button>
+                <button @click="appendValue('log(')">log</button>
+                <button @click="appendValue('^')">^</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp } = Vue;
+
+        createApp({
+            data() {
+                return {
+                    display: ''
+                };
+            },
+            methods: {
+                appendValue(value) {
+                    if (value === '^') {
+                        this.display += '**'; // Replace ^ with **
+                    } else {
+                        this.display += value;
+                    }
+                },
+                clearDisplay() {
+                    this.display = '';
+                },
+                calculateResult() {
+                    try {
+                        let expression = this.display
+                            .replace(/sin\(/g, 'Math.sin(')
+                            .replace(/cos\(/g, 'Math.cos(')
+                            .replace(/tan\(/g, 'Math.tan(')
+                            .replace(/sqrt\(/g, 'Math.sqrt(')
+                            .replace(/log\(/g, 'Math.log10(');
+
+                        this.display = new Function('return ' + expression)();
+                    } catch {
+                        this.display = 'Error';
+                    }
+                },
+                handleKeypress(event) {
+                    const key = event.key;
+                    if (!isNaN(key) || ['+', '-', '*', '/', '.', '(', ')'].includes(key)) {
+                        this.appendValue(key);
+                    } else if (key === 'Enter') {
+                        this.calculateResult();
+                    } else if (key === 'Backspace') {
+                        this.display = this.display.slice(0, -1);
+                    }
+                }
+            },
+            mounted() {
+                document.addEventListener('keydown', this.handleKeypress);
+            },
+            beforeUnmount() {
+                document.removeEventListener('keydown', this.handleKeypress);
+            }
+        }).mount("#app");
+    </script>
+
+</body>
+</html>
