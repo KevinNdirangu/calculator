@@ -1,8 +1,9 @@
 {
   "name": "vue-calculator",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "A simple Vue calculator desktop app",
   "main": "main.js",
+  "author": "Ndirangu",
   "scripts": {
     "start": "electron main.js",
     "dist": "electron-builder",
@@ -11,6 +12,7 @@
   "build": {
     "appId": "com.yourcompany.vuecalculator",
     "productName": "Vue Calculator",
+    "icon": "icons/favicon.ico",
     "compression": "maximum",
     "asar": true,
     "publish": [

@@ -16,8 +16,9 @@ if (!gotTheLock) {
 } else {
     app.whenReady().then(() => {
         mainWindow = new BrowserWindow({
-            width: 350,
+            width: 800,
             height: 600,
+            icon: "icons/favicon.ico", // ✅ Fixed icon path
             webPreferences: {
                 nodeIntegration: true, // Allow access to Node.js modules in renderer
                 contextIsolation: false, // Enable this for better security later
@@ -73,6 +74,11 @@ if (!gotTheLock) {
         ipcMain.on("check-for-updates", () => {
             log.info("Manual update check triggered.");
             autoUpdater.checkForUpdatesAndNotify();
+        });
+
+        // Handle window close event properly
+        mainWindow.on("closed", () => {
+            mainWindow = null;
         });
     });
 }
