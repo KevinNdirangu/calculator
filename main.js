@@ -1,6 +1,6 @@
-const { app, BrowserWindow, dialog } = require('electron');
-const { autoUpdater } = require('electron-updater');
-const log = require('electron-log');
+const { app, BrowserWindow, dialog, ipcMain } = require("electron");
+const { autoUpdater } = require("electron-updater");
+const log = require("electron-log");
 
 let mainWindow;
 
@@ -19,52 +19,60 @@ if (!gotTheLock) {
             width: 350,
             height: 600,
             webPreferences: {
-                nodeIntegration: true
-            }
+                nodeIntegration: true, // Allow access to Node.js modules in renderer
+                contextIsolation: false, // Enable this for better security later
+            },
         });
 
         mainWindow.loadFile("calculator.html");
 
-        // Check for updates
+        // Check for updates automatically
+        autoUpdater.autoDownload = false;
         autoUpdater.checkForUpdatesAndNotify();
-    });
 
-    app.on("window-all-closed", () => {
-        if (process.platform !== "darwin") app.quit();
-    });
-
-    // Auto-update event handlers
-    autoUpdater.on("checking-for-update", () => {
-        log.info("Checking for update...");
-    });
-
-    autoUpdater.on("update-available", (info) => {
-        log.info(`Update available: Version ${info.version}`);
-        dialog.showMessageBox({
-            type: "info",
-            title: "Update Available",
-            message: "A new update is available. Downloading now...",
+        app.on("window-all-closed", () => {
+            if (process.platform !== "darwin") app.quit();
         });
-    });
 
-    autoUpdater.on("update-not-available", () => {
-        log.info("No update available.");
-    });
+        // Auto-update event handlers
+        autoUpdater.on("checking-for-update", () => {
+            log.info("Checking for update...");
+        });
 
-    autoUpdater.on("error", (err) => {
-        log.error(`Update error: ${err.message}`);
-    });
-
-    autoUpdater.on("update-downloaded", () => {
-        log.info("Update downloaded. Restarting...");
-        dialog
-            .showMessageBox({
+        autoUpdater.on("update-available", (info) => {
+            log.info(`Update available: Version ${info.version}`);
+            dialog.showMessageBox({
                 type: "info",
-                title: "Update Ready",
-                message: "Update downloaded. The app will restart now to apply updates.",
-            })
-            .then(() => {
-                autoUpdater.quitAndInstall();
+                title: "Update Available",
+                message: "A new update is available. Downloading now...",
             });
+        });
+
+        autoUpdater.on("update-not-available", () => {
+            log.info("No update available.");
+        });
+
+        autoUpdater.on("error", (err) => {
+            log.error(`Update error: ${err.message}`);
+        });
+
+        autoUpdater.on("update-downloaded", () => {
+            log.info("Update downloaded. Restarting...");
+            dialog
+                .showMessageBox({
+                    type: "info",
+                    title: "Update Ready",
+                    message: "Update downloaded. The app will restart now to apply updates.",
+                })
+                .then(() => {
+                    autoUpdater.quitAndInstall();
+                });
+        });
+
+        // ✅ Handle manual update checking from Renderer Process
+        ipcMain.on("check-for-updates", () => {
+            log.info("Manual update check triggered.");
+            autoUpdater.checkForUpdatesAndNotify();
+        });
     });
 }
